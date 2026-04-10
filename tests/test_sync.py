@@ -31,6 +31,23 @@ def test_push_creates_profile_file(tmp_store, profiles_dir):
     assert (profiles_dir / "staging.enc").exists()
 
 
+def test_push_overwrites_existing_profile(tmp_store, profiles_dir, tmp_path):
+    """Pushing to an existing profile name should overwrite it with the latest data."""
+    push_profile(tmp_store, "staging", PASSPHRASE)
+
+    updated_store = str(tmp_path / "updated_store.enc")
+    save_store(updated_store, {"APP_ENV": "production", "NEW_KEY": "new_val"}, PASSPHRASE)
+    push_profile(updated_store, "staging", PASSPHRASE)
+
+    new_store = str(tmp_path / "new_store.enc")
+    save_store(new_store, {}, PASSPHRASE)
+    pull_profile(new_store, "staging", PASSPHRASE)
+    result = load_store(new_store, PASSPHRASE)
+    assert result["APP_ENV"] == "production"
+    assert result["NEW_KEY"] == "new_val"
+    assert "DB_URL" not in result
+
+
 def test_pull_restores_vars(tmp_store, profiles_dir, tmp_path):
     push_profile(tmp_store, "staging", PASSPHRASE)
     new_store = str(tmp_path / "new_store.enc")
