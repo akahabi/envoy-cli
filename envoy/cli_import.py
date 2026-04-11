@@ -80,4 +80,7 @@ def file_cmd(
     click.echo(f"Imported from {filepath}:")
     click.echo(f"  Added:   {len(added)}")
     click.echo(f"  Updated: {len(updated)}")
-    click.echo(f"  Skipped: {len(skipped)} (use --overwrite to replace existing keys)")
+    if skipped:
+        click.echo(f"  Skipped: {len(skipped)} (use --overwrite to replace existing keys)")
+    else:
+        click.echo(f"  Skipped: {len(skipped)}")
