@@ -50,18 +50,26 @@ def list_cmd(store: str) -> None:
         click.echo("No snapshots found.")
         return
     for s in snaps:
-        ts = datetime.fromtimestamp(s["created_at"]).strftime("%Y-%m-%d %H:%M:%S")
+        ts = _format_timestamp(s["created_at"])
         click.echo(f"{s['name']:30s}  {ts}  ({s['var_count']} vars)")
 
 
 @snapshot_cmd.command("delete")
 @click.argument("name")
 @click.option("--store", default=".envoy_store", show_default=True, help="Path to the encrypted store.")
-def delete_cmd(name: str, store: str) -> None:
+@click.option("--yes", "-y", is_flag=True, default=False, help="Skip confirmation prompt.")
+def delete_cmd(name: str, store: str, yes: bool) -> None:
     """Delete a named snapshot."""
+    if not yes:
+        click.confirm(f"Delete snapshot '{name}'?", abort=True)
     try:
         delete_snapshot(store, name)
         click.echo(f"Snapshot '{name}' deleted.")
     except SnapshotError as exc:
         click.echo(f"Error: {exc}", err=True)
         raise SystemExit(1)
+
+
+def _format_timestamp(ts: float) -> str:
+    """Format a Unix timestamp as a human-readable local datetime string."""
+    return datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
