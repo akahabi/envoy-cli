@@ -51,6 +51,11 @@ def profiles_cmd(profile_a, profile_b, pass_a, pass_b, show_unchanged):
 
 
 def _print_diff(result, show_unchanged: bool):
+    """Print a colour-coded diff of the comparison result.
+
+    Exits with a non-zero status code when differences are found, so the
+    command can be used reliably in scripts and CI pipelines.
+    """
     for item in result:
         if item.status == "added":
             click.echo(click.style(f"+ {item.key} = {item.target_value}", fg="green"))
@@ -65,3 +70,5 @@ def _print_diff(result, show_unchanged: bool):
     click.echo(summary(result))
     if not has_differences(result):
         click.echo("Environments are in sync.")
+    else:
+        sys.exit(1)
