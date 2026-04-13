@@ -53,3 +53,23 @@ def delete_profile(profile: str) -> None:
     if not path.exists():
         raise FileNotFoundError(f"Profile '{profile}' not found")
     path.unlink()
+
+
+def rename_profile(old_name: str, new_name: str) -> None:
+    """Rename an existing profile snapshot.
+
+    Args:
+        old_name: The current name of the profile.
+        new_name: The desired new name for the profile.
+
+    Raises:
+        FileNotFoundError: If the source profile does not exist.
+        FileExistsError: If a profile with the new name already exists.
+    """
+    src = _profile_path(old_name)
+    if not src.exists():
+        raise FileNotFoundError(f"Profile '{old_name}' not found")
+    dest = _profile_path(new_name)
+    if dest.exists():
+        raise FileExistsError(f"Profile '{new_name}' already exists")
+    src.rename(dest)
