@@ -79,3 +79,11 @@ def test_summary_shows_missing(store_file: Path, tmp_path: Path) -> None:
     example.write_text("DB_HOST=\nMISSING_VAR=\n", encoding="utf-8")
     result = check_against_example(store_file, PASSPHRASE, example, ignore_extra=True)
     assert "MISSING_VAR" in result.summary()
+
+
+def test_summary_shows_extra(store_file: Path, tmp_path: Path) -> None:
+    """Verify that the summary includes extra keys when they are present."""
+    example = tmp_path / ".env.example"
+    example.write_text("DB_HOST=\nDB_PORT=\n", encoding="utf-8")
+    result = check_against_example(store_file, PASSPHRASE, example)
+    assert "API_KEY" in result.summary()
