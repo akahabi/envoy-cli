@@ -26,6 +26,8 @@ def rotate_store_cmd(store_path: str, old_passphrase: str, new_passphrase: str) 
     path = Path(store_path)
     if not path.exists():
         raise click.ClickException(f"Store file not found: {store_path}")
+    if old_passphrase == new_passphrase:
+        raise click.ClickException("New passphrase must differ from the old passphrase.")
     try:
         vars_ = rotate_store(path, old_passphrase, new_passphrase)
     except RotationError as exc:
@@ -48,6 +50,8 @@ def rotate_profile_cmd(
     new_passphrase: str,
 ) -> None:
     """Re-encrypt a sync profile with a new passphrase."""
+    if old_passphrase == new_passphrase:
+        raise click.ClickException("New passphrase must differ from the old passphrase.")
     pdir = Path(profiles_dir)
     try:
         vars_ = rotate_profile(pdir, profile, old_passphrase, new_passphrase)
