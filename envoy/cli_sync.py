@@ -20,6 +20,9 @@ def push_cmd(profile: str, store: str, passphrase: str) -> None:
     try:
         push_profile(store, profile, passphrase)
         click.echo(f"✓ Pushed store to profile '{profile}'.")
+    except FileNotFoundError as exc:
+        click.echo(f"Error: store file not found: {exc}", err=True)
+        raise SystemExit(1)
     except Exception as exc:
         click.echo(f"Error: {exc}", err=True)
         raise SystemExit(1)
@@ -52,8 +55,11 @@ def list_cmd() -> None:
 
 @sync.command("delete")
 @click.argument("profile")
-def delete_cmd(profile: str) -> None:
+@click.option("--yes", "-y", is_flag=True, default=False, help="Skip confirmation prompt.")
+def delete_cmd(profile: str, yes: bool) -> None:
     """Delete a named profile snapshot."""
+    if not yes:
+        click.confirm(f"Delete profile '{profile}'?", abort=True)
     try:
         delete_profile(profile)
         click.echo(f"✓ Deleted profile '{profile}'.")
