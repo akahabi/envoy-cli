@@ -51,28 +51,34 @@ def current_env(
     profiles_dir: Path,
 ) -> Optional[str]:
     """Return the name of the profile whose contents match the current store,
-    or *None* if no profile matches exactly."""
+    or *None* if no profile matches exactly.
+
+    .. note::
+        This function temporarily overwrites the store during each profile
+        comparison, then restores the original contents before returning.
+        It is not safe to call concurrently with other store-mutating operations.
+    """
     if not store_path.exists():
         return None
 
     store_vars = load_store(store_path, passphrase)
 
-    for profile_file in sorted(profiles_dir.glob("*.env.enc")):
-        profile_name = profile_file.stem.replace(".env", "")
-        try:
-            profile_vars = pull_profile(
-                profile_name,
-                store_path,  # we need a temp read — pull_profile overwrites store
-                profiles_dir,
-                passphrase,
-            )
-        except Exception:
-            continue
-        if profile_vars == store_vars:
-            # Restore original store before returning
-            save_store(store_path, passphrase, store_vars)
-            return profile_name
+    try:
+        for profile_file in sorted(profiles_dir.glob("*.env.enc")):
+            profile_name = profile_file.stem.replace(".env", "")
+            try:
+                profile_vars = pull_profile(
+                    profile_name,
+                    store_path,  # we need a temp read — pull_profile overwrites store
+                    profiles_dir,
+                    passphrase,
+                )
+            except Exception:
+                continue
+            if profile_vars == store_vars:
+                return profile_name
+    finally:
+        # Always restore the original store, even if an unexpected error occurs.
+        save_store(store_path, passphrase, store_vars)
 
-    # Restore original store (pull_profile may have overwritten it)
-    save_store(store_path, passphrase, store_vars)
     return None
