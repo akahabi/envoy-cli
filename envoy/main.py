@@ -1,4 +1,4 @@
-"""Entry-point that assembles all CLI command groups."""
+"""Entry-point that registers all CLI command groups."""
 
 from __future__ import annotations
 
@@ -23,15 +23,17 @@ from envoy.cli_alias import alias_cmd
 from envoy.cli_pin import pin_cmd
 from envoy.cli_watch import watch_cmd
 from envoy.cli_secret_scan import scan_cmd
+from envoy.cli_ttl import ttl_cmd
+from envoy.cli_search import search_cmd
+from envoy.cli_promote import promote_cmd
+from envoy.cli_rename import rename_cmd
 
 
 @click.group()
-@click.version_option()
 def main() -> None:
-    """envoy — manage and sync .env files securely."""
+    """envoy — manage and sync .env files with encrypted storage."""
 
 
-# Core
 main.add_command(cli)
 main.add_command(sync)
 main.add_command(audit)
@@ -51,6 +53,10 @@ main.add_command(alias_cmd)
 main.add_command(pin_cmd)
 main.add_command(watch_cmd)
 main.add_command(scan_cmd)
+main.add_command(ttl_cmd)
+main.add_command(search_cmd)
+main.add_command(promote_cmd)
+main.add_command(rename_cmd)
 
 
 if __name__ == "__main__":
