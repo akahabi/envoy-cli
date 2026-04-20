@@ -34,6 +34,15 @@ def _invoke(runner: CliRunner, store_file: Path, *args: str):
     )
 
 
+def _invoke_with_overwrite(runner: CliRunner, store_file: Path, *args: str):
+    """Invoke rename_cmd with the --overwrite flag included."""
+    return runner.invoke(
+        rename_cmd,
+        ["key", *args, "--overwrite", "--store", str(store_file), "--passphrase", PASS],
+        catch_exceptions=False,
+    )
+
+
 def test_rename_key_success(runner: CliRunner, store_file: Path) -> None:
     result = _invoke(runner, store_file, "ALPHA", "ALPHA_RENAMED")
     assert result.exit_code == 0
@@ -62,14 +71,19 @@ def test_rename_conflict_without_overwrite_exits_nonzero(
 def test_rename_conflict_with_overwrite_succeeds(
     runner: CliRunner, store_file: Path
 ) -> None:
-    result = runner.invoke(
-        rename_cmd,
-        ["key", "ALPHA", "BETA", "--overwrite", "--store", str(store_file), "--passphrase", PASS],
-        catch_exceptions=False,
-    )
+    result = _invoke_with_overwrite(runner, store_file, "ALPHA", "BETA")
     assert result.exit_code == 0
     reloaded = load_store(store_file, PASS)
     assert reloaded["BETA"] == "a"
+
+
+def test_rename_conflict_with_overwrite_removes_old_key(
+    runner: CliRunner, store_file: Path
+) -> None:
+    """Overwriting should remove the source key, not leave both."""
+    _invoke_with_overwrite(runner, store_file, "ALPHA", "BETA")
+    reloaded = load_store(store_file, PASS)
+    assert "ALPHA" not in reloaded
 
 
 def test_rename_missing_store_exits_nonzero(
