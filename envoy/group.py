@@ -53,6 +53,24 @@ def remove_group(store_path: str, group: str) -> Dict[str, List[str]]:
     return data
 
 
+def remove_keys_from_group(store_path: str, group: str, keys: List[str]) -> Dict[str, List[str]]:
+    """Remove specific keys from a group without deleting the group itself.
+
+    Raises GroupError if the group does not exist or if any key is not
+    currently a member of the group.
+    """
+    data = _load_raw(store_path)
+    if group not in data:
+        raise GroupError(f"Group '{group}' does not exist")
+    current = data[group]
+    missing = [k for k in keys if k not in current]
+    if missing:
+        raise GroupError(f"Keys not in group '{group}': {', '.join(missing)}")
+    data[group] = [k for k in current if k not in keys]
+    _save_raw(store_path, data)
+    return data
+
+
 def list_groups(store_path: str) -> Dict[str, List[str]]:
     """Return all groups and their key lists."""
     return _load_raw(store_path)
